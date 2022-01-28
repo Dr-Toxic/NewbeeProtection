@@ -57,7 +57,7 @@ namespace NewbeeProtection
 
         private void PostLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
         {
-            if ((DateTime.UtcNow - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes <= GodConfig.GodTime)
+            if ((DateTime.UtcNow - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes <= GodConfig.GodTime && NPC.downedBoss3)
             {
                 args.Player.GodMode = true;
                 args.Player.SendSuccessMessage($"你有${(int)Math.Ceiling(GodConfig.GodTime - (DateTime.UtcNow - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes)}分钟的新手保护时间！"); 
