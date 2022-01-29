@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using Terraria;
 using TerrariaApi.Server;
 using TShockAPI;
-
+using Terraria.GameContent.Creative;
 
 namespace NewbeeProtection
 {
-    [ApiVersion(2,1)]
+    [ApiVersion(2, 1)]
     public class MainPlugin : TerrariaPlugin
     {
         public override string Author => "Dr.Toxic";// 插件作者
@@ -57,15 +57,20 @@ namespace NewbeeProtection
 
         private void PostLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
         {
-            if ((DateTime.UtcNow - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes <= GodConfig.GodTime && NPC.downedBoss3)
+            if (args.Player.HasPermission(Permissions.bypassssc)) return;
+            //args.Player.SendInfoMessage($"{(DateTime.Now - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes}");
+            if ((DateTime.Now - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes <= GodConfig.GodTime)
             {
-                args.Player.GodMode = true;
-                args.Player.SendSuccessMessage($"你有${(int)Math.Ceiling(GodConfig.GodTime - (DateTime.UtcNow - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes)}分钟的新手保护时间！"); 
+                args.Player.GodMode = !args.Player.GodMode;
+                var godPower = CreativePowerManager.Instance.GetPower<CreativePowers.GodmodePower>();
+                godPower.SetEnabledState(args.Player.Index, args.Player.GodMode);
+                args.Player.SendSuccessMessage($"你有{GodConfig.GodTime - (int)Math.Floor((DateTime.Now - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes)}分钟的新手保护时间！");
             }
         }
 
         private void OnLeave(LeaveEventArgs args)
         {
+            //godPower.SetEnabledState(args.Who, false);
             TShock.Players[args.Who].GodMode = false;
         }
 
@@ -73,9 +78,17 @@ namespace NewbeeProtection
         {
             foreach (var player in TShock.Players)
             {
-                if ((DateTime.UtcNow - DateTime.Parse(player.Account.Registered).ToLocalTime()).TotalMinutes > GodConfig.GodTime)
+                if (player.HasPermission(Permissions.bypassssc))
                 {
-                    player.GodMode = false;
+                    continue;
+                }
+                if ((DateTime.Now - DateTime.Parse(player.Account.Registered).ToLocalTime()).TotalMinutes > GodConfig.GodTime &&
+                    (DateTime.Now - DateTime.Parse(player.Account.Registered).ToLocalTime()).TotalMinutes < GodConfig.GodTime + 1
+                    && player.GodMode)
+                {
+                    player.GodMode = !player.GodMode;
+                    var godPower = CreativePowerManager.Instance.GetPower<CreativePowers.GodmodePower>();
+                    godPower.SetEnabledState(player.Index, player.GodMode);
                     player.SendInfoMessage("你的新手保护时间已结束！");
                 }
             }
