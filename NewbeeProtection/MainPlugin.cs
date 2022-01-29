@@ -59,7 +59,7 @@ namespace NewbeeProtection
         {
             if (args.Player.HasPermission(Permissions.bypassssc)) return;
             //args.Player.SendInfoMessage($"{(DateTime.Now - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes}");
-            if ((DateTime.Now - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes <= GodConfig.GodTime)
+            if ((DateTime.Now - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes <= GodConfig.GodTime && NPC.downedBoss3)
             {
                 args.Player.GodMode = !args.Player.GodMode;
                 var godPower = CreativePowerManager.Instance.GetPower<CreativePowers.GodmodePower>();
