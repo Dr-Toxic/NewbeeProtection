@@ -9,7 +9,6 @@ using Terraria;
 using TerrariaApi.Server;
 using TShockAPI;
 using Terraria.GameContent.Creative;
-using TShockAPI.Hooks;
 
 namespace NewbeeProtection
 {
