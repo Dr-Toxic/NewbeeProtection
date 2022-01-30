@@ -9,6 +9,7 @@ using Terraria;
 using TerrariaApi.Server;
 using TShockAPI;
 using Terraria.GameContent.Creative;
+using TShockAPI.Hooks;
 
 namespace NewbeeProtection
 {
@@ -34,8 +35,6 @@ namespace NewbeeProtection
 
         public override void Initialize()
         {
-            TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += PostLogin;
-            ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
             Update.Elapsed += OnUpdate;
             Update.Start();
 
@@ -47,31 +46,10 @@ namespace NewbeeProtection
         {
             if (disposing)
             {
-                TShockAPI.Hooks.PlayerHooks.PlayerPostLogin -= PostLogin;
-                ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
                 Update.Elapsed -= OnUpdate;
                 Update.Stop();
             }
             base.Dispose(disposing);
-        }
-
-        private void PostLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
-        {
-            if (args.Player.HasPermission(Permissions.bypassssc)) return;
-            //args.Player.SendInfoMessage($"{(DateTime.Now - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes}");
-            if ((DateTime.Now - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes <= GodConfig.GodTime && NPC.downedBoss3)
-            {
-                args.Player.GodMode = !args.Player.GodMode;
-                var godPower = CreativePowerManager.Instance.GetPower<CreativePowers.GodmodePower>();
-                godPower.SetEnabledState(args.Player.Index, args.Player.GodMode);
-                args.Player.SendSuccessMessage($"你有{GodConfig.GodTime - (int)Math.Floor((DateTime.Now - DateTime.Parse(args.Player.Account.Registered).ToLocalTime()).TotalMinutes)}分钟的新手保护时间！");
-            }
-        }
-
-        private void OnLeave(LeaveEventArgs args)
-        {
-            //godPower.SetEnabledState(args.Who, false);
-            TShock.Players[args.Who].GodMode = false;
         }
 
         private void OnUpdate(object sender, ElapsedEventArgs e)
@@ -81,6 +59,14 @@ namespace NewbeeProtection
                 if (player.HasPermission(Permissions.bypassssc))
                 {
                     continue;
+                }
+                if (player.Active && !player.GodMode &&
+                    (DateTime.Now - DateTime.Parse(player.Account.Registered).ToLocalTime()).TotalMinutes <= GodConfig.GodTime && NPC.downedBoss3)
+                {
+                    player.GodMode = !player.GodMode;
+                    var godPower = CreativePowerManager.Instance.GetPower<CreativePowers.GodmodePower>();
+                    godPower.SetEnabledState(player.Index, player.GodMode);
+                    player.SendSuccessMessage($"你有{GodConfig.GodTime - (int)Math.Floor((DateTime.Now - DateTime.Parse(player.Account.Registered).ToLocalTime()).TotalMinutes)}分钟的新手保护时间！");
                 }
                 if ((DateTime.Now - DateTime.Parse(player.Account.Registered).ToLocalTime()).TotalMinutes > GodConfig.GodTime &&
                     (DateTime.Now - DateTime.Parse(player.Account.Registered).ToLocalTime()).TotalMinutes < GodConfig.GodTime + 1
